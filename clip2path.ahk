@@ -19,7 +19,16 @@
         . ' -File "' A_ScriptDir '\save-clipboard-image.ps1" -Path "' path '"'
     RunWait(ps, , 'Hide')
     if FileExist(path) {
-        SendText(path)  ; types the path directly, without touching the clipboard
+        ; Wait for physical modifier keys to be released — characters sent
+        ; while Ctrl/Alt are still held down can be swallowed or reinterpreted
+        ; as shortcut combinations by the receiving app.
+        KeyWait 'Ctrl'
+        KeyWait 'Alt'
+        KeyWait 'Shift'
+        ; Type in Event mode with a 10ms per-key delay — burst-speed SendInput
+        ; gets characters dropped/duplicated in some apps (e.g. Windows 11 Notepad).
+        SetKeyDelay 10, 0
+        SendEvent '{Text}' path  ; types the path directly, without touching the clipboard
         TrayTip(path, 'clip2path: image saved', 1)
     } else {
         TrayTip('No image in clipboard', 'clip2path', 2)
