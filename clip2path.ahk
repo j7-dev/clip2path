@@ -19,20 +19,21 @@
         . ' -File "' A_ScriptDir '\save-clipboard-image.ps1" -Path "' path '"'
     RunWait(ps, , 'Hide')
     if FileExist(path) {
-        ; Wait for physical modifier keys to be released — characters sent
-        ; while Ctrl/Alt are still held down can be swallowed or reinterpreted
-        ; as shortcut combinations by the receiving app.
+        ; Wait for physical modifier keys to be released — sending ^v while
+        ; Alt is still held becomes Ctrl+Alt+V, re-triggering this hotkey in
+        ; an endless loop.
         KeyWait 'Ctrl'
         KeyWait 'Alt'
         KeyWait 'Shift'
-        ; Type one character at a time as Unicode packets: this bypasses the
-        ; IME / keyboard layout (real key events get swallowed by IME
-        ; composition in apps like VS Code), while the per-char pause avoids
-        ; overflowing slow text controls (e.g. Windows 11 Notepad).
-        Loop Parse path {
-            SendInput '{Text}' A_LoopField
-            Sleep 10
-        }
+        ; Back up the full clipboard (including the image), put the path on
+        ; it, paste, then restore. The path appears instantly and is immune
+        ; to IME interception and slow text controls.
+        backup := ClipboardAll()
+        A_Clipboard := path
+        if ClipWait(1)
+            Send '^v'
+        Sleep 500  ; let the target app finish processing the paste before restoring
+        A_Clipboard := backup
         TrayTip(path, 'clip2path: image saved', 1)
     } else {
         TrayTip('No image in clipboard', 'clip2path', 2)

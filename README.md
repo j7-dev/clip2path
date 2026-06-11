@@ -2,7 +2,7 @@
 
 [English](README.md) | [繁體中文](README.zh-TW.md)
 
-> Press `Ctrl + Alt + V` → the clipboard image is saved as a PNG file, and its **file path is typed at your cursor**. Your clipboard stays untouched — the image can still be pasted normally.
+> Press `Ctrl + Alt + V` → the clipboard image is saved as a PNG file, and its **file path is pasted at your cursor**. Your clipboard is automatically backed up and restored — the image can still be pasted normally afterwards.
 
 Perfect for CLI tools and AI coding agents (Claude Code, Codex, Gemini CLI...) that accept image **paths** but not pasted images: take a screenshot, press the hotkey in your terminal, and the path appears right where you need it.
 
@@ -14,11 +14,11 @@ Perfect for CLI tools and AI coding agents (Claude Code, Codex, Gemini CLI...) t
 │ in clipboard  │                └─────────────────────────┘
 └──────────────┘                             │
        │                                     ▼
-       │  clipboard untouched,   path typed at your cursor:
-       └─ image still pastable   C:\Users\you\AppData\Local\Temp\clipboard_20260611_081721.png
+       │  clipboard auto-restored,  path pasted at your cursor:
+       └─ image still pastable      C:\Users\you\AppData\Local\Temp\clipboard_20260611_081721.png
 ```
 
-- **AutoHotkey v2** registers the global hotkey and types the path with `SendText` (no clipboard involved).
+- **AutoHotkey v2** registers the global hotkey, pastes the path, then restores your original clipboard (full-fidelity backup via `ClipboardAll`).
 - **PowerShell** reads the clipboard image and saves it as PNG.
 - A shortcut in your **Startup folder** makes it survive reboots.
 
@@ -54,7 +54,7 @@ No admin rights required. Nothing is written outside your user profile.
 1. Copy any image to the clipboard (e.g. `Win + Shift + S` screenshot, or right-click → Copy Image)
 2. Place your cursor in any text field (terminal, editor, chat box...)
 3. Press `Ctrl + Alt + V`
-4. The PNG path is typed at your cursor; a toast notification confirms the save
+4. The PNG path is pasted at your cursor; a toast notification confirms the save
 
 If the clipboard has no image, you get a notification instead — nothing is typed.
 
