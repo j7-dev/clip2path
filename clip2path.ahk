@@ -25,10 +25,14 @@
         KeyWait 'Ctrl'
         KeyWait 'Alt'
         KeyWait 'Shift'
-        ; Type in Event mode with a 10ms per-key delay — burst-speed SendInput
-        ; gets characters dropped/duplicated in some apps (e.g. Windows 11 Notepad).
-        SetKeyDelay 10, 0
-        SendEvent '{Text}' path  ; types the path directly, without touching the clipboard
+        ; Type one character at a time as Unicode packets: this bypasses the
+        ; IME / keyboard layout (real key events get swallowed by IME
+        ; composition in apps like VS Code), while the per-char pause avoids
+        ; overflowing slow text controls (e.g. Windows 11 Notepad).
+        Loop Parse path {
+            SendInput '{Text}' A_LoopField
+            Sleep 10
+        }
         TrayTip(path, 'clip2path: image saved', 1)
     } else {
         TrayTip('No image in clipboard', 'clip2path', 2)
