@@ -30,10 +30,12 @@
         ; to IME interception and slow text controls.
         backup := ClipboardAll()
         A_Clipboard := path
-        if ClipWait(1)
+        if ClipWait(2)
             Send '^v'
-        Sleep 500  ; let the target app finish processing the paste before restoring
-        A_Clipboard := backup
+        ; Restore 2s later (non-blocking) — Electron apps like VS Code read
+        ; the clipboard asynchronously after the paste keystroke; restoring
+        ; too early makes the paste pick up the restored (old) content.
+        SetTimer () => A_Clipboard := backup, -2000
         TrayTip(path, 'clip2path: image saved', 1)
     } else {
         TrayTip('No image in clipboard', 'clip2path', 2)
