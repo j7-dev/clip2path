@@ -19,23 +19,26 @@
         . ' -File "' A_ScriptDir '\save-clipboard-image.ps1" -Path "' path '"'
     RunWait(ps, , 'Hide')
     if FileExist(path) {
-        ; Wait for physical modifier keys to be released — sending ^v while
-        ; Alt is still held becomes Ctrl+Alt+V, re-triggering this hotkey in
-        ; an endless loop.
+        ; Wait for physical modifier keys to be released — characters sent
+        ; while Ctrl/Alt are still held down can be swallowed or reinterpreted
+        ; as shortcut combinations by the receiving app.
         KeyWait 'Ctrl'
         KeyWait 'Alt'
         KeyWait 'Shift'
-        ; Back up the full clipboard (including the image), put the path on
-        ; it, paste, then restore. The path appears instantly and is immune
-        ; to IME interception and slow text controls.
-        backup := ClipboardAll()
-        A_Clipboard := path
-        if ClipWait(2)
-            Send '^v'
-        ; Restore 2s later (non-blocking) — Electron apps like VS Code read
-        ; the clipboard asynchronously after the paste keystroke; restoring
-        ; too early makes the paste pick up the restored (old) content.
-        SetTimer () => A_Clipboard := backup, -2000
+        ; Type the path as Unicode packets in small chunks, without touching
+        ; the clipboard at all:
+        ; - real virtual-key injection (SendEvent / synthetic ^v) gets
+        ;   silently dropped by some setups (observed with VS Code + CJK IME);
+        ;   Unicode packets (SendInput {Text}) are the only channel that
+        ;   reliably reaches consoles, classic controls and Electron apps
+        ; - 8 chars per chunk with a 25ms pause avoids overflowing slow text
+        ;   controls (e.g. Windows 11 Notepad); the whole path lands in ~0.2s
+        i := 1
+        while (i <= StrLen(path)) {
+            SendInput '{Text}' SubStr(path, i, 8)
+            i += 8
+            Sleep 25
+        }
         TrayTip(path, 'clip2path: image saved', 1)
     } else {
         TrayTip('No image in clipboard', 'clip2path', 2)
